@@ -28,3 +28,10 @@ enum EnglishLevel {
   C1
   C2
 }
+
+model Client {
+  id            Int           @id @default(autoincrement())
+  key String  @unique
+  name String
+  archived Boolean  @default(false)
+}

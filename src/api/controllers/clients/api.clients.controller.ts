@@ -24,48 +24,48 @@ import {
 } from '@nestjs/swagger';
 import { v4 as uuidv4 } from 'uuid';
 
-import { UsersService } from '../../../modules/users/users.service';
-import { PostUserDTO } from './dto/createUser.dto';
+import { ClientsService } from '../../../modules/clients/clients.service';
+import { ClientEntity } from './client.entity';
+import { PostClientDTO } from './dto/createClient.dto';
 import { SkipAndTakeQueryParams } from '../../common/dto/SkipAndTakeQueryParams.dto';
-import { UserEntity } from './user.entity';
 import { IdPathParam } from '../../common/dto/IdParam.dto';
-import { PatchUserDTO } from './dto/patchUser.dto';
-import { PatchUserEnabled } from './dto/patchUserEnabled.dto';
+import { PatchClientDTO } from './dto/patchClient.dto';
+import { PatchClientArchived } from './dto/patchClientArchived.dto';
 
-@ApiTags('Users')
+@ApiTags('Clients')
 @Controller({
-  path: 'api/users',
+  path: 'api/clients',
   version: '0.1',
 })
-export class ApiUsersController {
+export class ApiClientsController {
   constructor(
-    private usersService: UsersService,
+    private clientsService: ClientsService,
     @Inject(WINSTON_MODULE_PROVIDER) private readonly logger: Logger,
   ) {}
 
   @ApiCreatedResponse({
-    description: 'User created',
-    type: UserEntity,
+    description: 'Client created',
+    type: ClientEntity,
   })
   @ApiBadRequestResponse({
-    description: 'Email already exists',
+    description: 'Client name already exists',
   })
   @ApiInternalServerErrorResponse({
     description: 'Server failed, try again later',
   })
   @Post()
-  async registerUser(@Body() userData: PostUserDTO) {
+  async registerClient(@Body() body: PostClientDTO) {
     try {
-      const user = await this.usersService.registerUser(userData);
-      return user;
+      const client = await this.clientsService.registerClient(body.name);
+      return client;
     } catch (e) {
       if (e instanceof Prisma.PrismaClientKnownRequestError) {
         if (e.code === 'P2002')
-          throw new BadRequestException('Email is already registered');
+          throw new BadRequestException('Client already exists');
 
         const uuid = uuidv4();
         this.logger.error(
-          `Api Users Controller, registerUser, error id: ${uuid} error: ${JSON.stringify(
+          `Api Clients Controller, registerClient, error id: ${uuid} error: ${JSON.stringify(
             e,
           )}`,
         );
@@ -79,8 +79,8 @@ export class ApiUsersController {
   }
 
   @ApiOkResponse({
-    description: 'Users found',
-    type: [UserEntity],
+    description: 'Clients found',
+    type: [ClientEntity],
   })
   @ApiBadRequestResponse({
     description: 'Wrong query params',
@@ -89,14 +89,14 @@ export class ApiUsersController {
     description: 'Server failed, try again later',
   })
   @Get()
-  async getUsers(@Query() query: SkipAndTakeQueryParams) {
+  async getClients(@Query() query: SkipAndTakeQueryParams) {
     try {
-      const users = await this.usersService.users(query);
-      return users;
+      const clients = await this.clientsService.clients(query);
+      return clients;
     } catch (e) {
       const uuid = uuidv4();
       this.logger.error(
-        `Api Users Controller, getUsers, error id: ${uuid} error: ${JSON.stringify(
+        `Api Clients Controller, getClients, error id: ${uuid} error: ${JSON.stringify(
           e,
         )}`,
       );
@@ -111,29 +111,29 @@ export class ApiUsersController {
   }
 
   @ApiOkResponse({
-    description: 'User found',
-    type: UserEntity,
+    description: 'Client found',
+    type: ClientEntity,
   })
   @ApiNotFoundResponse({
-    description: 'User not found',
+    description: 'Client not found',
   })
   @ApiInternalServerErrorResponse({
     description: 'Server failed, try again later',
   })
   @Get(':id')
-  async getUser(@Param() params: IdPathParam) {
+  async getClient(@Param() params: IdPathParam) {
     try {
-      const user = await this.usersService.user({
+      const client = await this.clientsService.client({
         id: params.id,
       });
-      if (!user) throw new NotFoundException();
-      return user;
+      if (!client) throw new NotFoundException();
+      return client;
     } catch (e) {
       if (e instanceof NotFoundException) throw e;
 
       const uuid = uuidv4();
       this.logger.error(
-        `Api Users Controller, getUser, error id: ${uuid} error: ${JSON.stringify(
+        `Api Clients Controller, getClient, error id: ${uuid} error: ${JSON.stringify(
           e,
         )}`,
       );
@@ -148,26 +148,29 @@ export class ApiUsersController {
   }
 
   @ApiOkResponse({
-    description: 'User found',
-    type: UserEntity,
+    description: 'Client found',
+    type: ClientEntity,
   })
   @ApiNotFoundResponse({
-    description: 'User not found',
+    description: 'Client not found',
   })
   @ApiInternalServerErrorResponse({
     description: 'Server failed, try again later',
   })
   @Patch(':id')
-  async patchUser(@Param() params: IdPathParam, @Body() body: PatchUserDTO) {
+  async patchClient(
+    @Param() params: IdPathParam,
+    @Body() body: PatchClientDTO,
+  ) {
     try {
-      const user = await this.usersService.editUser(
+      const client = await this.clientsService.editClient(
         {
           id: params.id,
         },
         body,
       );
-      if (!user) throw new NotFoundException();
-      return user;
+      if (!client) throw new NotFoundException();
+      return client;
     } catch (e) {
       if (e instanceof NotFoundException) throw e;
 
@@ -175,7 +178,7 @@ export class ApiUsersController {
 
       const uuid = uuidv4();
       this.logger.error(
-        `Api Users Controller, patchUser, error id: ${uuid} error: ${JSON.stringify(
+        `Api Clients Controller, patchClient, error id: ${uuid} error: ${JSON.stringify(
           e,
         )}`,
       );
@@ -190,27 +193,27 @@ export class ApiUsersController {
   }
 
   @ApiOkResponse({
-    description: 'User found',
-    type: UserEntity,
+    description: 'Client found',
+    type: ClientEntity,
   })
   @ApiNotFoundResponse({
-    description: 'User not found',
+    description: 'Client not found',
   })
   @ApiInternalServerErrorResponse({
     description: 'Server failed, try again later',
   })
-  @Patch(':id/enabled')
-  async PatchUserEnabled(
+  @Patch(':id/archived')
+  async PatchClientArchived(
     @Param() params: IdPathParam,
-    @Body() body: PatchUserEnabled,
+    @Body() body: PatchClientArchived,
   ) {
     try {
-      const user = await this.usersService.editUserEnabled(
+      const client = await this.clientsService.editClientArchived(
         { id: params.id },
-        body.enabled,
+        body.archived,
       );
-      if (!user) throw new NotFoundException();
-      return user;
+      if (!client) throw new NotFoundException();
+      return client;
     } catch (e) {
       if (e instanceof NotFoundException) throw e;
 
@@ -218,7 +221,7 @@ export class ApiUsersController {
 
       const uuid = uuidv4();
       this.logger.error(
-        `Api Users Controller, getUser, error id: ${uuid} error: ${JSON.stringify(
+        `Api Clients Controller, getClient, error id: ${uuid} error: ${JSON.stringify(
           e,
         )}`,
       );

@@ -1,9 +1,9 @@
 import { faker } from '@faker-js/faker';
-import { UserDTO } from '../../src/api/controllers/users/dto/createUser.dto';
+import { PostUserDTO } from '../../src/api/controllers/users/dto/createUser.dto';
 import { EnglishLevel } from '@prisma/client';
-import { PatchUserDTO } from 'src/api/controllers/users/dto/patchUser.dto';
+import { PatchUserDTO } from '../../src/api/controllers/users/dto/patchUser.dto';
 
-export const generatePostUserData = (): UserDTO => {
+export const generatePostUserData = (): PostUserDTO => {
   return {
     email: faker.internet.email(),
     firstName: faker.internet.userName(),

@@ -1,7 +1,7 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { INestApplication, ValidationPipe } from '@nestjs/common';
 import * as request from 'supertest';
-import { AppModule } from './../src/app.module';
+import { AppModule } from '../src/app.module';
 import {
   generatePatchUserData,
   generatePostUserData,
@@ -52,7 +52,7 @@ describe('AppController (e2e)', () => {
       expect(userPostData.lastName).toBe(user.lastName);
     });
 
-    it('Should fail request', () => {
+    it('Should fail request due duplicated data', () => {
       return request(app.getHttpServer())
         .post('/api/users')
         .send(userPostData)
@@ -60,6 +60,17 @@ describe('AppController (e2e)', () => {
         .expect({
           statusCode: 400,
           message: 'Email is already registered',
+          error: 'Bad Request',
+        });
+    });
+
+    it('Should fail request due no body provided', () => {
+      return request(app.getHttpServer())
+        .post('/api/users')
+        .expect(400)
+        .expect({
+          statusCode: 400,
+          message: ['email must be an email'],
           error: 'Bad Request',
         });
     });

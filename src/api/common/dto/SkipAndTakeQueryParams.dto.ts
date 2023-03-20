@@ -1,9 +1,9 @@
 import { ApiProperty } from '@nestjs/swagger';
 import { Transform } from 'class-transformer';
 import { IsNumber, IsOptional, Max, Min } from 'class-validator';
-import { toNumber } from '../../../../utils/cast.helper';
+import { toNumber } from '../../../utils/cast.helper';
 
-export class GetUsersQueryDto {
+export class SkipAndTakeQueryParams {
   @ApiProperty({
     description: 'Number of records to skip before selecting',
     example: 0,

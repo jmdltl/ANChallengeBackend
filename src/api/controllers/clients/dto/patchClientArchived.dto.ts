@@ -1,11 +1,11 @@
 import { ApiProperty } from '@nestjs/swagger';
 import { IsBoolean } from 'class-validator';
 
-export class PatchUserEnabled {
+export class PatchClientArchived {
   @ApiProperty({
-    description: 'User enabled status',
+    description: 'Client archived status',
     example: true,
   })
   @IsBoolean()
-  public enabled: boolean;
+  public archived: boolean;
 }

@@ -4,7 +4,7 @@ import { mockDeep, DeepMockProxy } from 'jest-mock-extended';
 import { UsersRepository } from './users.repository';
 import { UsersService } from './users.service';
 
-describe(`UsersRepository`, () => {
+describe(`UsersService`, () => {
   let usersService: UsersService;
   let usersRepository: DeepMockProxy<UsersRepository>;
 

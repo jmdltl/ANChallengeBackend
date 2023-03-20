@@ -8,6 +8,7 @@ import * as winston from 'winston';
 import { PrismaModule } from './database/prisma.module';
 import { UsersModule } from './modules/users/users.module';
 import { ApiModule } from './api/api.module';
+import { ClientsModule } from './modules/clients/clients.module';
 
 @Module({
   imports: [
@@ -24,6 +25,7 @@ import { ApiModule } from './api/api.module';
     UsersModule,
     ApiModule,
     PrismaModule,
+    ClientsModule,
   ],
   controllers: [],
   providers: [],
