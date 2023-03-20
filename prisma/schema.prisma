@@ -10,12 +10,12 @@ datasource db {
 model User {
   id            Int           @id @default(autoincrement())
   email         String        @unique
-  first_name    String?
-  last_name     String?
+  firstName    String?
+  lastName     String?
   password      String?
-  tech_skills   String?
-  resume_link   String?
-  english_level EnglishLevel?
+  techSkills   String?
+  resumeLink   String?
+  englishLevel EnglishLevel?
   enabled       Boolean       @default(true)
 }
 

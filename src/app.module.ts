@@ -5,8 +5,9 @@ import {
 } from 'nest-winston';
 import * as winston from 'winston';
 
-import { AppController } from './app.controller';
-import { AppService } from './app.service';
+import { PrismaModule } from './database/prisma.module';
+import { UsersModule } from './modules/users/users.module';
+import { ApiModule } from './api/api.module';
 
 @Module({
   imports: [
@@ -20,8 +21,11 @@ import { AppService } from './app.service';
         }),
       ],
     }),
+    UsersModule,
+    ApiModule,
+    PrismaModule,
   ],
-  controllers: [AppController],
-  providers: [AppService],
+  controllers: [],
+  providers: [],
 })
 export class AppModule {}
