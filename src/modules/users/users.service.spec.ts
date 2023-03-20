@@ -59,4 +59,59 @@ describe(`UsersRepository`, () => {
       );
     });
   });
+
+  describe(`users`, () => {
+    it(`should retrieve users`, async () => {
+      const mockedUsers = [
+        {
+          id: 31,
+          email: 'Jackeline_Walsh19@gmail.com',
+          firstName: 'Justyn.Price',
+          lastName: 'Hadley_Greenholt98',
+          password: null,
+          techSkills: null,
+          resumeLink: null,
+          englishLevel: null,
+          enabled: true,
+        },
+        {
+          id: 32,
+          email: 'Lionel.Greenfelder29@hotmail.com',
+          firstName: 'Kailey65',
+          lastName: 'Lilly.Nikolaus',
+          password: null,
+          techSkills: null,
+          resumeLink: null,
+          englishLevel: null,
+          enabled: true,
+        },
+      ];
+
+      usersRepository.getUsers.mockResolvedValue(mockedUsers);
+      const createdUser = await usersService.users({});
+
+      expect(createdUser).toBe(mockedUsers);
+    });
+  });
+
+  describe(`users`, () => {
+    it(`should retrieve user`, async () => {
+      const mockedUser = {
+        id: 31,
+        email: 'Jackeline_Walsh19@gmail.com',
+        firstName: 'Justyn.Price',
+        lastName: 'Hadley_Greenholt98',
+        password: null,
+        techSkills: null,
+        resumeLink: null,
+        englishLevel: null,
+        enabled: true,
+      };
+
+      usersRepository.getUser.mockResolvedValue(mockedUser);
+      const foundUser = await usersService.user({});
+
+      expect(foundUser).toBe(mockedUser);
+    });
+  });
 });

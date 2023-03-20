@@ -4,7 +4,11 @@ import {
   Body,
   Inject,
   BadRequestException,
+  NotFoundException,
   InternalServerErrorException,
+  Get,
+  Query,
+  Param,
 } from '@nestjs/common';
 import { Prisma } from '@prisma/client';
 import { WINSTON_MODULE_PROVIDER } from 'nest-winston';
@@ -13,13 +17,17 @@ import {
   ApiBadRequestResponse,
   ApiCreatedResponse,
   ApiInternalServerErrorResponse,
+  ApiNotFoundResponse,
+  ApiOkResponse,
   ApiTags,
 } from '@nestjs/swagger';
 import { v4 as uuidv4 } from 'uuid';
 
 import { UsersService } from '../../../modules/users/users.service';
 import { UserDTO } from './dto/createUser.dto';
+import { GetUsersQueryDto } from './dto/getUsersQuery.dto';
 import { UserEntity } from './user.entity';
+import { GetUserParam } from './dto/getUserParam.dto';
 
 @ApiTags('Users')
 @Controller({
@@ -40,7 +48,7 @@ export class ApiUsersController {
     description: 'Email already exists',
   })
   @ApiInternalServerErrorResponse({
-    description: 'Sever erroed, try again later',
+    description: 'Server failed, try again later',
   })
   @Post()
   async registerUser(@Body() userData: UserDTO) {
@@ -59,6 +67,75 @@ export class ApiUsersController {
           )}`,
         );
 
+        throw new InternalServerErrorException({
+          description: `Unexpected error, reference uuid: ${uuid}, please reach out to support.`,
+          errorId: uuid,
+        });
+      }
+    }
+  }
+
+  @ApiOkResponse({
+    description: 'Users found',
+    type: [UserEntity],
+  })
+  @ApiBadRequestResponse({
+    description: 'Wrong query params',
+  })
+  @ApiInternalServerErrorResponse({
+    description: 'Server failed, try again later',
+  })
+  @Get()
+  async getUsers(@Query() query: GetUsersQueryDto) {
+    try {
+      const users = await this.usersService.users(query);
+      return users;
+    } catch (e) {
+      const uuid = uuidv4();
+      this.logger.error(
+        `Api Users Controller, getUsers, error id: ${uuid} error: ${JSON.stringify(
+          e,
+        )}`,
+      );
+
+      if (e instanceof Prisma.PrismaClientKnownRequestError) {
+        throw new InternalServerErrorException({
+          description: `Unexpected error, reference uuid: ${uuid}, please reach out to support.`,
+          errorId: uuid,
+        });
+      }
+    }
+  }
+
+  @ApiOkResponse({
+    description: 'User found',
+    type: UserEntity,
+  })
+  @ApiNotFoundResponse({
+    description: 'User not found',
+  })
+  @ApiInternalServerErrorResponse({
+    description: 'Server failed, try again later',
+  })
+  @Get(':id')
+  async getUser(@Param() params: GetUserParam) {
+    try {
+      const user = await this.usersService.user({
+        id: params.id,
+      });
+      if (!user) throw new NotFoundException();
+      return user;
+    } catch (e) {
+      if (e instanceof NotFoundException) throw e;
+
+      const uuid = uuidv4();
+      this.logger.error(
+        `Api Users Controller, getUsers, error id: ${uuid} error: ${JSON.stringify(
+          e,
+        )}`,
+      );
+
+      if (e instanceof Prisma.PrismaClientKnownRequestError) {
         throw new InternalServerErrorException({
           description: `Unexpected error, reference uuid: ${uuid}, please reach out to support.`,
           errorId: uuid,
