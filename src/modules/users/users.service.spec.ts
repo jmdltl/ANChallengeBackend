@@ -114,4 +114,53 @@ describe(`UsersRepository`, () => {
       expect(foundUser).toBe(mockedUser);
     });
   });
+
+  describe(`editUser`, () => {
+    it(`should retrieve user`, async () => {
+      const mockedWhere = {
+        id: 31,
+      };
+      const mockedUser = {
+        id: 31,
+        email: 'Jackeline_Walsh19@gmail.com',
+        firstName: 'Justyn.Price',
+        lastName: 'Hadley_Greenholt98',
+        password: null,
+        techSkills: null,
+        resumeLink: null,
+        englishLevel: null,
+        enabled: true,
+      };
+
+      usersRepository.updateUser.mockResolvedValue(mockedUser);
+      const foundUser = await usersService.editUser(mockedWhere, mockedUser);
+
+      expect(foundUser).toBe(mockedUser);
+    });
+  });
+
+  describe(`editUserEnabled`, () => {
+    it(`should retrieve user`, async () => {
+      const mockedUser = {
+        id: 31,
+        email: 'Jackeline_Walsh19@gmail.com',
+        firstName: 'Justyn.Price',
+        lastName: 'Hadley_Greenholt98',
+        password: null,
+        techSkills: null,
+        resumeLink: null,
+        englishLevel: null,
+        enabled: true,
+      };
+      const mockEnabled = true;
+
+      usersRepository.updateUser.mockResolvedValue(mockedUser);
+      const foundUser = await usersService.editUserEnabled(
+        mockedUser,
+        mockEnabled,
+      );
+
+      expect(foundUser.enabled).toBe(mockEnabled);
+    });
+  });
 });

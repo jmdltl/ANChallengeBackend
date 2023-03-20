@@ -43,4 +43,18 @@ export class UsersService {
       orderBy,
     });
   }
+
+  async editUser(
+    where: Prisma.UserWhereUniqueInput,
+    data: Prisma.UserUpdateInput,
+  ): Promise<User> {
+    return this.usersRepository.updateUser({ where, data });
+  }
+
+  async editUserEnabled(
+    where: Prisma.UserWhereUniqueInput,
+    enabled: boolean,
+  ): Promise<User> {
+    return this.usersRepository.updateUser({ where, data: { enabled } });
+  }
 }

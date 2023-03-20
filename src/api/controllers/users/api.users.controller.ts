@@ -9,6 +9,7 @@ import {
   Get,
   Query,
   Param,
+  Patch,
 } from '@nestjs/common';
 import { Prisma } from '@prisma/client';
 import { WINSTON_MODULE_PROVIDER } from 'nest-winston';
@@ -28,6 +29,8 @@ import { UserDTO } from './dto/createUser.dto';
 import { GetUsersQueryDto } from './dto/getUsersQuery.dto';
 import { UserEntity } from './user.entity';
 import { GetUserParam } from './dto/getUserParam.dto';
+import { PatchUserDTO } from './dto/patchUser.dto';
+import { PatchUserEnabled } from './dto/patchUserEnabled.dto';
 
 @ApiTags('Users')
 @Controller({
@@ -130,7 +133,92 @@ export class ApiUsersController {
 
       const uuid = uuidv4();
       this.logger.error(
-        `Api Users Controller, getUsers, error id: ${uuid} error: ${JSON.stringify(
+        `Api Users Controller, getUser, error id: ${uuid} error: ${JSON.stringify(
+          e,
+        )}`,
+      );
+
+      if (e instanceof Prisma.PrismaClientKnownRequestError) {
+        throw new InternalServerErrorException({
+          description: `Unexpected error, reference uuid: ${uuid}, please reach out to support.`,
+          errorId: uuid,
+        });
+      }
+    }
+  }
+
+  @ApiOkResponse({
+    description: 'User found',
+    type: UserEntity,
+  })
+  @ApiNotFoundResponse({
+    description: 'User not found',
+  })
+  @ApiInternalServerErrorResponse({
+    description: 'Server failed, try again later',
+  })
+  @Patch(':id')
+  async patchUser(@Param() params: GetUserParam, @Body() body: PatchUserDTO) {
+    try {
+      const user = await this.usersService.editUser(
+        {
+          id: params.id,
+        },
+        body,
+      );
+      if (!user) throw new NotFoundException();
+      return user;
+    } catch (e) {
+      if (e instanceof NotFoundException) throw e;
+
+      if (e.code === 'P2025') throw new NotFoundException();
+
+      const uuid = uuidv4();
+      this.logger.error(
+        `Api Users Controller, patchUser, error id: ${uuid} error: ${JSON.stringify(
+          e,
+        )}`,
+      );
+
+      if (e instanceof Prisma.PrismaClientKnownRequestError) {
+        throw new InternalServerErrorException({
+          description: `Unexpected error, reference uuid: ${uuid}, please reach out to support.`,
+          errorId: uuid,
+        });
+      }
+    }
+  }
+
+  @ApiOkResponse({
+    description: 'User found',
+    type: UserEntity,
+  })
+  @ApiNotFoundResponse({
+    description: 'User not found',
+  })
+  @ApiInternalServerErrorResponse({
+    description: 'Server failed, try again later',
+  })
+  @Patch(':id/enabled')
+  async PatchUserEnabled(
+    @Param() params: GetUserParam,
+    @Body() body: PatchUserEnabled,
+  ) {
+    try {
+      const user = await this.usersService.editUserEnabled(
+        { id: params.id },
+        body.enabled,
+      );
+      if (!user) throw new NotFoundException();
+      return user;
+    } catch (e) {
+      if (e instanceof NotFoundException) throw e;
+
+      if (e.code === 'P2025') throw new NotFoundException();
+
+      const uuid = uuidv4();
+      this.logger.error(
+        `Api Users Controller, getUser, error id: ${uuid} error: ${JSON.stringify(
           e,
         )}`,
       );
