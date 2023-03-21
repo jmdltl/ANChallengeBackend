@@ -24,63 +24,71 @@ import {
 } from '@nestjs/swagger';
 import { v4 as uuidv4 } from 'uuid';
 
-import { ClientsService } from '../../../modules/clients/clients.service';
-import { ClientEntity } from './client.entity';
-import { PostClientDTO } from './dto/createClient.dto';
+import { AccountsService } from 'src/modules/accounts/accounts.service';
+import { AccountEntity } from './account.entity';
 import { SkipAndTakeQueryParams } from '../../common/dto/SkipAndTakeQueryParams.dto';
 import { IdPathParam } from '../../common/dto/IdParam.dto';
-import { PatchClientDTO } from './dto/patchClient.dto';
-import { PatchClientArchived } from './dto/patchClientArchived.dto';
+import { PostAccountDTO } from './dto/createAccount.dto';
+import { PatchAccountDTO } from './dto/patchAccount.dto';
+import { PatchAccountArchivedDTO } from './dto/patchAccountArchived.dto';
 
-@ApiTags('Clients')
+@ApiTags('Accounts')
 @Controller({
-  path: 'api/clients',
+  path: 'api/accounts',
   version: '0.1',
 })
-export class ApiClientsController {
+export class ApiAccountsController {
   constructor(
-    private clientsService: ClientsService,
+    private accountsService: AccountsService,
     @Inject(WINSTON_MODULE_PROVIDER) private readonly logger: Logger,
   ) {}
 
   @ApiCreatedResponse({
-    description: 'Client created',
-    type: ClientEntity,
+    description: 'Account created',
+    type: AccountEntity,
   })
-  @ApiBadRequestResponse({
-    description: 'Client name already exists',
-  })
+  @ApiBadRequestResponse()
   @ApiInternalServerErrorResponse({
     description: 'Server failed, try again later',
   })
   @Post()
-  async registerClient(@Body() body: PostClientDTO) {
+  async registerAccount(@Body() body: PostAccountDTO) {
     try {
-      const client = await this.clientsService.registerClient(body.name);
-      return client;
+      const account = await this.accountsService.registerAccount({
+        ...body,
+        key: '',
+      });
+      return account;
     } catch (e) {
       if (e instanceof Prisma.PrismaClientKnownRequestError) {
         if (e.code === 'P2002')
-          throw new BadRequestException('Client already exists');
-
-        const uuid = uuidv4();
-        this.logger.error(
-          `Api Clients Controller, registerClient, error id: ${uuid} error: ${JSON.stringify(
-            e,
-          )}`,
-        );
-
-        throw new InternalServerErrorException({
-          description: `Unexpected error, reference uuid: ${uuid}, please reach out to support.`,
-          errorId: uuid,
-        });
+          throw new BadRequestException('Account is already registered');
       }
+
+      switch (e.message) {
+        case 'The User with the id=ResponsibleId is already responsible to an Account':
+        case 'User with id=responsibleId not found':
+        case 'Client not found':
+          throw new NotFoundException(e.message);
+      }
+
+      const uuid = uuidv4();
+      this.logger.error(
+        `Api Accounts Controller, registerAccount, error id: ${uuid} error: ${JSON.stringify(
+          e,
+        )}`,
+      );
+
+      throw new InternalServerErrorException({
+        description: `Unexpected error, reference uuid: ${uuid}, please reach out to support.`,
+        errorId: uuid,
+      });
     }
   }
 
   @ApiOkResponse({
-    description: 'Clients found',
-    type: [ClientEntity],
+    description: 'Accounts found',
+    type: [AccountEntity],
   })
   @ApiBadRequestResponse({
     description: 'Wrong query params',
@@ -89,14 +97,14 @@ export class ApiClientsController {
     description: 'Server failed, try again later',
   })
   @Get()
-  async getClients(@Query() query: SkipAndTakeQueryParams) {
+  async getAccounts(@Query() query: SkipAndTakeQueryParams) {
     try {
-      const clients = await this.clientsService.clients(query);
-      return clients;
+      const accounts = await this.accountsService.accounts(query);
+      return accounts;
     } catch (e) {
       const uuid = uuidv4();
       this.logger.error(
-        `Api Clients Controller, getClients, error id: ${uuid} error: ${JSON.stringify(
+        `Api Accounts Controller, getAccounts, error id: ${uuid} error: ${JSON.stringify(
           e,
         )}`,
       );
@@ -111,29 +119,29 @@ export class ApiClientsController {
   }
 
   @ApiOkResponse({
-    description: 'Client found',
-    type: ClientEntity,
+    description: 'Account found',
+    type: AccountEntity,
   })
   @ApiNotFoundResponse({
-    description: 'Client not found',
+    description: 'Account not found',
   })
   @ApiInternalServerErrorResponse({
     description: 'Server failed, try again later',
   })
   @Get(':id')
-  async getClient(@Param() params: IdPathParam) {
+  async getAccount(@Param() params: IdPathParam) {
     try {
-      const client = await this.clientsService.client({
+      const account = await this.accountsService.account({
         id: params.id,
       });
-      if (!client) throw new NotFoundException();
-      return client;
+      if (!account) throw new NotFoundException();
+      return account;
     } catch (e) {
       if (e instanceof NotFoundException) throw e;
 
       const uuid = uuidv4();
       this.logger.error(
-        `Api Clients Controller, getClient, error id: ${uuid} error: ${JSON.stringify(
+        `Api Accounts Controller, getAccount, error id: ${uuid} error: ${JSON.stringify(
           e,
         )}`,
       );
@@ -148,37 +156,44 @@ export class ApiClientsController {
   }
 
   @ApiOkResponse({
-    description: 'Client updated',
-    type: ClientEntity,
+    description: 'Account updated',
+    type: AccountEntity,
   })
   @ApiNotFoundResponse({
-    description: 'Client not found',
+    description: 'Account not found',
   })
   @ApiInternalServerErrorResponse({
     description: 'Server failed, try again later',
   })
   @Patch(':id')
-  async patchClient(
+  async patchAccount(
     @Param() params: IdPathParam,
-    @Body() body: PatchClientDTO,
+    @Body() body: PatchAccountDTO,
   ) {
     try {
-      const client = await this.clientsService.editClient(
+      const account = await this.accountsService.editAccount(
         {
           id: params.id,
         },
         body,
       );
-      if (!client) throw new NotFoundException();
-      return client;
+      if (!account) throw new NotFoundException();
+      return account;
     } catch (e) {
       if (e instanceof NotFoundException) throw e;
 
       if (e.code === 'P2025') throw new NotFoundException();
 
+      switch (e.message) {
+        case 'The User with the id=ResponsibleId is already responsible to an Account':
+        case 'User with id=responsibleId not found':
+        case 'Client not found':
+          throw new NotFoundException(e.message);
+      }
+
       const uuid = uuidv4();
       this.logger.error(
-        `Api Clients Controller, patchClient, error id: ${uuid} error: ${JSON.stringify(
+        `Api Accounts Controller, patchAccount, error id: ${uuid} error: ${JSON.stringify(
           e,
         )}`,
       );
@@ -193,27 +208,27 @@ export class ApiClientsController {
   }
 
   @ApiOkResponse({
-    description: 'Client found',
-    type: ClientEntity,
+    description: 'Account found',
+    type: AccountEntity,
   })
   @ApiNotFoundResponse({
-    description: 'Client not found',
+    description: 'Account not found',
   })
   @ApiInternalServerErrorResponse({
     description: 'Server failed, try again later',
   })
   @Patch(':id/archived')
-  async PatchClientArchived(
+  async PatchAccountArchived(
     @Param() params: IdPathParam,
-    @Body() body: PatchClientArchived,
+    @Body() body: PatchAccountArchivedDTO,
   ) {
     try {
-      const client = await this.clientsService.editClientArchived(
+      const account = await this.accountsService.editAccountArchived(
         { id: params.id },
         body.archived,
       );
-      if (!client) throw new NotFoundException();
-      return client;
+      if (!account) throw new NotFoundException();
+      return account;
     } catch (e) {
       if (e instanceof NotFoundException) throw e;
 
@@ -221,7 +236,7 @@ export class ApiClientsController {
 
       const uuid = uuidv4();
       this.logger.error(
-        `Api Clients Controller, getClient, error id: ${uuid} error: ${JSON.stringify(
+        `Api Accounts Controller, getAccount, error id: ${uuid} error: ${JSON.stringify(
           e,
         )}`,
       );

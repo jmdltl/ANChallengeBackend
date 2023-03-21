@@ -148,7 +148,7 @@ export class ApiUsersController {
   }
 
   @ApiOkResponse({
-    description: 'User found',
+    description: 'User updated',
     type: UserEntity,
   })
   @ApiNotFoundResponse({
