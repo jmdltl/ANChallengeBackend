@@ -10,6 +10,7 @@ import { UsersModule } from './modules/users/users.module';
 import { ApiModule } from './api/api.module';
 import { ClientsModule } from './modules/clients/clients.module';
 import { AccountsModule } from './modules/accounts/accounts.module';
+import { AuthModule } from './modules/auth/auth.module';
 
 @Module({
   imports: [
@@ -28,6 +29,7 @@ import { AccountsModule } from './modules/accounts/accounts.module';
     PrismaModule,
     ClientsModule,
     AccountsModule,
+    AuthModule,
   ],
   controllers: [],
   providers: [],

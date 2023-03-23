@@ -10,6 +10,9 @@ import {
   Query,
   Param,
   Patch,
+  UseGuards,
+  Req,
+  SetMetadata,
 } from '@nestjs/common';
 import { Prisma } from '@prisma/client';
 import { WINSTON_MODULE_PROVIDER } from 'nest-winston';
@@ -24,13 +27,16 @@ import {
 } from '@nestjs/swagger';
 import { v4 as uuidv4 } from 'uuid';
 
-import { AccountsService } from 'src/modules/accounts/accounts.service';
+import { AccountsService } from '../../../modules/accounts/accounts.service';
 import { AccountEntity } from './account.entity';
 import { SkipAndTakeQueryParams } from '../../common/dto/SkipAndTakeQueryParams.dto';
 import { IdPathParam } from '../../common/dto/IdParam.dto';
 import { PostAccountDTO } from './dto/createAccount.dto';
 import { PatchAccountDTO } from './dto/patchAccount.dto';
 import { PatchAccountArchivedDTO } from './dto/patchAccountArchived.dto';
+import { AuthGuard } from '@nestjs/passport';
+import { PERMISSIONS } from '../../..//config/permissionsAndRoles';
+import { AuthorizationGuard } from '../../..//modules/auth/authorization.guard';
 
 @ApiTags('Accounts')
 @Controller({
@@ -51,6 +57,8 @@ export class ApiAccountsController {
   @ApiInternalServerErrorResponse({
     description: 'Server failed, try again later',
   })
+  @SetMetadata('requiredPermission', PERMISSIONS.ACCOUNTS.CREATE)
+  @UseGuards(AuthGuard(), AuthorizationGuard)
   @Post()
   async registerAccount(@Body() body: PostAccountDTO) {
     try {
@@ -96,6 +104,8 @@ export class ApiAccountsController {
   @ApiInternalServerErrorResponse({
     description: 'Server failed, try again later',
   })
+  @SetMetadata('requiredPermission', PERMISSIONS.ACCOUNTS.READ)
+  @UseGuards(AuthGuard(), AuthorizationGuard)
   @Get()
   async getAccounts(@Query() query: SkipAndTakeQueryParams) {
     try {
@@ -128,6 +138,8 @@ export class ApiAccountsController {
   @ApiInternalServerErrorResponse({
     description: 'Server failed, try again later',
   })
+  @SetMetadata('requiredPermission', PERMISSIONS.ACCOUNTS.READ)
+  @UseGuards(AuthGuard(), AuthorizationGuard)
   @Get(':id')
   async getAccount(@Param() params: IdPathParam) {
     try {
@@ -165,6 +177,8 @@ export class ApiAccountsController {
   @ApiInternalServerErrorResponse({
     description: 'Server failed, try again later',
   })
+  @SetMetadata('requiredPermission', PERMISSIONS.ACCOUNTS.UPDATE)
+  @UseGuards(AuthGuard(), AuthorizationGuard)
   @Patch(':id')
   async patchAccount(
     @Param() params: IdPathParam,
@@ -217,6 +231,8 @@ export class ApiAccountsController {
   @ApiInternalServerErrorResponse({
     description: 'Server failed, try again later',
   })
+  @SetMetadata('requiredPermission', PERMISSIONS.ACCOUNTS.DELETE)
+  @UseGuards(AuthGuard(), AuthorizationGuard)
   @Patch(':id/archived')
   async PatchAccountArchived(
     @Param() params: IdPathParam,

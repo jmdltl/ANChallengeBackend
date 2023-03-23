@@ -40,4 +40,24 @@ export class UsersRepository {
     const { where, data } = params;
     return this.prisma.user.update({ where, data });
   }
+
+  async getUserWithRolesAndPermissions({
+    params,
+  }: {
+    params: {
+      where: Prisma.UserWhereUniqueInput;
+    };
+  }): Promise<User | null> {
+    const { where } = params;
+    return this.prisma.user.findUnique({
+      where,
+      include: {
+        roles: {
+          include: {
+            permissions: true,
+          },
+        },
+      },
+    });
+  }
 }

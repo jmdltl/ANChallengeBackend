@@ -7,6 +7,16 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
+enum EnglishLevel {
+  PRE_A1
+  A1
+  A2
+  B1
+  B2
+  C1
+  C2
+}
+
 model User {
   id            Int           @id @default(autoincrement())
   email         String        @unique
@@ -18,16 +28,32 @@ model User {
   englishLevel EnglishLevel?
   enabled       Boolean       @default(true)
   accounts Account[]
+  passwordToken PasswordToken[]
+  roles Roles[]
 }
 
-enum EnglishLevel {
-  PRE_A1
-  A1
-  A2
-  B1
-  B2
-  C1
-  C2
+model PasswordToken {
+  id            String           @id @default(uuid())
+  expirationDate DateTime
+  userId Int
+  user User  @relation(fields: [userId], references: [id])
+}
+
+model Roles {
+  id            String           @id @default(uuid())
+  key         String        @unique
+  title    String?
+  description    String?
+  permissions Permissions[]
+  users User[]
+}
+
+model Permissions {
+  id            String           @id @default(uuid())
+  key         String        @unique
+  title    String?
+  description    String?
+  role Roles[]
 }
 
 model Client {

@@ -10,6 +10,8 @@ import {
   Query,
   Param,
   Patch,
+  SetMetadata,
+  UseGuards,
 } from '@nestjs/common';
 import { Prisma } from '@prisma/client';
 import { WINSTON_MODULE_PROVIDER } from 'nest-winston';
@@ -31,6 +33,9 @@ import { UserEntity } from './user.entity';
 import { IdPathParam } from '../../common/dto/IdParam.dto';
 import { PatchUserDTO } from './dto/patchUser.dto';
 import { PatchUserEnabled } from './dto/patchUserEnabled.dto';
+import { PERMISSIONS } from '../../../config/permissionsAndRoles';
+import { AuthGuard } from '@nestjs/passport';
+import { AuthorizationGuard } from '../../../modules/auth/authorization.guard';
 
 @ApiTags('Users')
 @Controller({
@@ -53,6 +58,8 @@ export class ApiUsersController {
   @ApiInternalServerErrorResponse({
     description: 'Server failed, try again later',
   })
+  @SetMetadata('requiredPermission', PERMISSIONS.USERS.CREATE.DEFAULT)
+  @UseGuards(AuthGuard(), AuthorizationGuard)
   @Post()
   async registerUser(@Body() userData: PostUserDTO) {
     try {
@@ -88,6 +95,8 @@ export class ApiUsersController {
   @ApiInternalServerErrorResponse({
     description: 'Server failed, try again later',
   })
+  @SetMetadata('requiredPermission', PERMISSIONS.USERS.READ)
+  @UseGuards(AuthGuard(), AuthorizationGuard)
   @Get()
   async getUsers(@Query() query: SkipAndTakeQueryParams) {
     try {
@@ -120,6 +129,8 @@ export class ApiUsersController {
   @ApiInternalServerErrorResponse({
     description: 'Server failed, try again later',
   })
+  @SetMetadata('requiredPermission', PERMISSIONS.USERS.READ)
+  @UseGuards(AuthGuard(), AuthorizationGuard)
   @Get(':id')
   async getUser(@Param() params: IdPathParam) {
     try {
@@ -157,6 +168,8 @@ export class ApiUsersController {
   @ApiInternalServerErrorResponse({
     description: 'Server failed, try again later',
   })
+  @SetMetadata('requiredPermission', PERMISSIONS.USERS.UPDATE)
+  @UseGuards(AuthGuard(), AuthorizationGuard)
   @Patch(':id')
   async patchUser(@Param() params: IdPathParam, @Body() body: PatchUserDTO) {
     try {
@@ -199,6 +212,8 @@ export class ApiUsersController {
   @ApiInternalServerErrorResponse({
     description: 'Server failed, try again later',
   })
+  @SetMetadata('requiredPermission', PERMISSIONS.USERS.DELETE)
+  @UseGuards(AuthGuard(), AuthorizationGuard)
   @Patch(':id/enabled')
   async PatchUserEnabled(
     @Param() params: IdPathParam,

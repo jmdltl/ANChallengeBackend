@@ -10,7 +10,7 @@ export class ClientsService {
     return name.trim().split(' ').join('-').toLocaleLowerCase();
   }
 
-  async registerClient(name: string) {
+  async registerClient(name: string): Promise<Client> {
     const data = {
       name,
       key: this.transformNameToKey(name),

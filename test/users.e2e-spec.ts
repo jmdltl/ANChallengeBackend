@@ -7,10 +7,13 @@ import {
   generatePostUserData,
 } from './generators/users.generator';
 import { PrismaClient } from '@prisma/client';
+import { JwtService } from '@nestjs/jwt';
 
 describe('AppController (e2e)', () => {
   let app: INestApplication;
   let prismaClient: PrismaClient;
+  let jwtService: JwtService;
+  let token: string;
 
   beforeEach(async () => {
     const moduleFixture: TestingModule = await Test.createTestingModule({
@@ -19,8 +22,31 @@ describe('AppController (e2e)', () => {
     }).compile();
 
     app = moduleFixture.createNestApplication();
+    jwtService = moduleFixture.get(JwtService);
     prismaClient = moduleFixture.get(PrismaClient);
     app.useGlobalPipes(new ValidationPipe({ whitelist: true }));
+
+    const user = await prismaClient.user.findFirst({
+      where: {
+        roles: {
+          some: {
+            key: 'superAdmin',
+          },
+        },
+      },
+    });
+
+    if (user) {
+      const payload = {
+        jwt: {
+          user: {
+            id: user.id,
+            email: user.email,
+          },
+        },
+      };
+      token = await jwtService.sign(payload);
+    }
 
     await app.init();
   });
@@ -31,6 +57,7 @@ describe('AppController (e2e)', () => {
     it('Should create user', () => {
       return request(app.getHttpServer())
         .post('/api/users')
+        .set('Authorization', 'bearer ' + token)
         .send(userPostData)
         .expect(201)
         .then((res) => {
@@ -55,6 +82,7 @@ describe('AppController (e2e)', () => {
     it('Should fail request due duplicated data', () => {
       return request(app.getHttpServer())
         .post('/api/users')
+        .set('Authorization', 'bearer ' + token)
         .send(userPostData)
         .expect(400)
         .expect({
@@ -67,6 +95,7 @@ describe('AppController (e2e)', () => {
     it('Should fail request due no body provided', () => {
       return request(app.getHttpServer())
         .post('/api/users')
+        .set('Authorization', 'bearer ' + token)
         .expect(400)
         .expect({
           statusCode: 400,
@@ -80,6 +109,7 @@ describe('AppController (e2e)', () => {
     it('Should retrieve users', () => {
       return request(app.getHttpServer())
         .get('/api/users')
+        .set('Authorization', 'bearer ' + token)
         .query({
           skip: 0,
           take: 20,
@@ -93,6 +123,7 @@ describe('AppController (e2e)', () => {
     it('Should fail because of missing query params', () => {
       return request(app.getHttpServer())
         .get('/api/users')
+        .set('Authorization', 'bearer ' + token)
         .expect(400)
         .then((res) => {
           expect.arrayContaining(res.body.message);
@@ -102,6 +133,7 @@ describe('AppController (e2e)', () => {
     it('Should fail because of wrong size query params', () => {
       return request(app.getHttpServer())
         .get('/api/users')
+        .set('Authorization', 'bearer ' + token)
         .query({
           take: 150,
         })
@@ -125,6 +157,7 @@ describe('AppController (e2e)', () => {
 
       return request(app.getHttpServer())
         .get(`/api/users/${users[0].id}`)
+        .set('Authorization', 'bearer ' + token)
         .expect(200)
         .then((res) => {
           expect(res.body).toEqual(users[0]);
@@ -134,6 +167,7 @@ describe('AppController (e2e)', () => {
     it('Should fail because of wrong id', () => {
       return request(app.getHttpServer())
         .get('/api/users/99999999')
+        .set('Authorization', 'bearer ' + token)
         .expect(404)
         .then((res) => {
           expect.arrayContaining(res.body.message);
@@ -151,6 +185,7 @@ describe('AppController (e2e)', () => {
 
       return request(app.getHttpServer())
         .patch(`/api/users/${users[0].id}`)
+        .set('Authorization', 'bearer ' + token)
         .send(userPostData)
         .expect(200)
         .then((res) => {
@@ -165,6 +200,7 @@ describe('AppController (e2e)', () => {
     it('Should fail because of wrong id', () => {
       return request(app.getHttpServer())
         .patch('/api/users/99999999')
+        .set('Authorization', 'bearer ' + token)
         .send(userPostData)
         .expect(404)
         .then((res) => {
@@ -182,6 +218,7 @@ describe('AppController (e2e)', () => {
       const res = await request(app.getHttpServer())
         .patch(`/api/users/${users[0].id}/enabled`)
         .send({ enabled: !users[0].enabled })
+        .set('Authorization', 'bearer ' + token)
         .expect(200)
         .then((res) => {
           expect(res.body.enabled).toBe(!users[0].enabled);
@@ -199,6 +236,7 @@ describe('AppController (e2e)', () => {
     it('Should fail because of wrong id', () => {
       return request(app.getHttpServer())
         .patch('/api/users/99999999/patch')
+        .set('Authorization', 'bearer ' + token)
         .expect(404)
         .then((res) => {
           expect.arrayContaining(res.body.message);

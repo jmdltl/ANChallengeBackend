@@ -130,4 +130,30 @@ describe(`UsersRepository`, () => {
       await expect(updateUser()).resolves.toBe(mockedUser);
     });
   });
+
+  describe(`updateUser`, () => {
+    it(`Should get list of Users`, async () => {
+      const mockedUser = {
+        id: 31,
+        email: 'Jackeline_Walsh19@gmail.com',
+        firstName: 'Justyn.Price',
+        lastName: 'Hadley_Greenholt98',
+        password: null,
+        techSkills: null,
+        resumeLink: null,
+        englishLevel: null,
+        enabled: true,
+      };
+      prismaService.user.findUnique.mockResolvedValue(mockedUser);
+
+      const updateUser = () =>
+        usersRepository.getUserWithRolesAndPermissions({
+          params: {
+            where: { id: 31 },
+          },
+        });
+
+      await expect(updateUser()).resolves.toBe(mockedUser);
+    });
+  });
 });

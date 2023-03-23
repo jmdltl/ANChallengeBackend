@@ -10,6 +10,8 @@ import {
   Query,
   Param,
   Patch,
+  SetMetadata,
+  UseGuards,
 } from '@nestjs/common';
 import { Prisma } from '@prisma/client';
 import { WINSTON_MODULE_PROVIDER } from 'nest-winston';
@@ -31,6 +33,9 @@ import { SkipAndTakeQueryParams } from '../../common/dto/SkipAndTakeQueryParams.
 import { IdPathParam } from '../../common/dto/IdParam.dto';
 import { PatchClientDTO } from './dto/patchClient.dto';
 import { PatchClientArchived } from './dto/patchClientArchived.dto';
+import { PERMISSIONS } from '../../../config/permissionsAndRoles';
+import { AuthorizationGuard } from '../../../modules/auth/authorization.guard';
+import { AuthGuard } from '@nestjs/passport';
 
 @ApiTags('Clients')
 @Controller({
@@ -53,6 +58,8 @@ export class ApiClientsController {
   @ApiInternalServerErrorResponse({
     description: 'Server failed, try again later',
   })
+  @SetMetadata('requiredPermission', PERMISSIONS.CLIENTS.CREATE)
+  @UseGuards(AuthGuard(), AuthorizationGuard)
   @Post()
   async registerClient(@Body() body: PostClientDTO) {
     try {
@@ -88,6 +95,8 @@ export class ApiClientsController {
   @ApiInternalServerErrorResponse({
     description: 'Server failed, try again later',
   })
+  @SetMetadata('requiredPermission', PERMISSIONS.CLIENTS.READ)
+  @UseGuards(AuthGuard(), AuthorizationGuard)
   @Get()
   async getClients(@Query() query: SkipAndTakeQueryParams) {
     try {
@@ -120,6 +129,8 @@ export class ApiClientsController {
   @ApiInternalServerErrorResponse({
     description: 'Server failed, try again later',
   })
+  @SetMetadata('requiredPermission', PERMISSIONS.CLIENTS.READ)
+  @UseGuards(AuthGuard(), AuthorizationGuard)
   @Get(':id')
   async getClient(@Param() params: IdPathParam) {
     try {
@@ -157,6 +168,8 @@ export class ApiClientsController {
   @ApiInternalServerErrorResponse({
     description: 'Server failed, try again later',
   })
+  @SetMetadata('requiredPermission', PERMISSIONS.CLIENTS.UPDATE)
+  @UseGuards(AuthGuard(), AuthorizationGuard)
   @Patch(':id')
   async patchClient(
     @Param() params: IdPathParam,
@@ -202,6 +215,8 @@ export class ApiClientsController {
   @ApiInternalServerErrorResponse({
     description: 'Server failed, try again later',
   })
+  @SetMetadata('requiredPermission', PERMISSIONS.CLIENTS.DELETE)
+  @UseGuards(AuthGuard(), AuthorizationGuard)
   @Patch(':id/archived')
   async PatchClientArchived(
     @Param() params: IdPathParam,
