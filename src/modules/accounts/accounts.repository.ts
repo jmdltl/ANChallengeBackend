@@ -21,7 +21,20 @@ export class AccountsRepository {
     };
   }): Promise<Account | null> {
     const { where } = params;
-    return this.prisma.account.findUnique({ where });
+    return this.prisma.account.findUnique({
+      where,
+      include: {
+        client: true,
+        responsible: {
+          select: {
+            firstName: true,
+            lastName: true,
+            password: false,
+            email: true,
+          },
+        },
+      },
+    });
   }
 
   async getFirstAccount({
@@ -32,7 +45,20 @@ export class AccountsRepository {
     };
   }): Promise<Account | null> {
     const { where } = params;
-    return this.prisma.account.findFirst({ where });
+    return this.prisma.account.findFirst({
+      where,
+      include: {
+        client: true,
+        responsible: {
+          select: {
+            firstName: true,
+            lastName: true,
+            password: false,
+            email: true,
+          },
+        },
+      },
+    });
   }
 
   async getAccounts(params: {
@@ -49,6 +75,17 @@ export class AccountsRepository {
       cursor,
       where,
       orderBy,
+      include: {
+        client: true,
+        responsible: {
+          select: {
+            firstName: true,
+            lastName: true,
+            password: false,
+            email: true,
+          },
+        },
+      },
     });
   }
 
