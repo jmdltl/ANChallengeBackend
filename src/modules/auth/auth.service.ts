@@ -24,18 +24,24 @@ export class AuthService {
 
   async login(email: string, password: string): Promise<string> {
     const errorMessage = 'The credentials do not match with any user';
-    const user = await this.usersService.user({ email });
+    const user = await this.usersService.userWithRoles({ email });
     if (!user) throw new Error(errorMessage);
     if (!user.enabled) throw new Error('User is disabled, reach administrator');
 
     const match = await bcrypt.compare(password, user.password as string);
     if (!match) throw Error(errorMessage);
 
+    let roleKey;
+    if (user.roles[0]) {
+      roleKey = user.roles[0].key;
+    }
+
     const payload = {
       jwt: {
         user: {
           id: user.id,
           email: user.email,
+          role: roleKey,
         },
       },
     };

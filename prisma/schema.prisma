@@ -30,6 +30,8 @@ model User {
   accounts Account[]
   passwordToken PasswordToken[]
   roles Roles[]
+  accountsAssignations AccountAssignations[]
+  accountAssignationsLogs AccountAssignationsLogs[]
 }
 
 model PasswordToken {
@@ -73,4 +75,32 @@ model Account {
   responsibleId Int
   responsible User  @relation(fields: [responsibleId], references: [id])
   client  Client  @relation(fields: [clientId], references: [id])
+  accountAssignations AccountAssignations[]
+}
+
+model AccountAssignations {
+  id            Int           @id @default(autoincrement())
+  startDate DateTime?
+  endDate DateTime?
+  status Boolean @default(true)
+  userId  Int
+  user User  @relation(fields: [userId], references: [id])
+  accountId Int
+  account Account  @relation(fields: [accountId], references: [id])
+  accountAssignationsLogs AccountAssignationsLogs[]
+}
+
+enum AssignationType {
+  ASSIGNED
+  REMOVED
+}
+
+model AccountAssignationsLogs {
+  id            Int           @id @default(autoincrement())
+  type  AssignationType
+  date DateTime
+  userId  Int
+  user User  @relation(fields: [userId], references: [id])
+  accountAssignationId Int
+  accountAssignation  AccountAssignations @relation(fields: [accountAssignationId], references: [id])
 }

@@ -11,7 +11,8 @@ export function toDate(value: string): Date {
 }
 
 export function toBoolean(value: string): boolean {
-  value = value.toLowerCase();
+  if (typeof value === 'boolean') return value;
+  if (typeof value === 'string') value = value.toLowerCase();
 
   return value === 'true' || value === '1' ? true : false;
 }

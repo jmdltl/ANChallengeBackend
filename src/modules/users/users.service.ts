@@ -1,5 +1,5 @@
 import { forwardRef, Inject, Injectable } from '@nestjs/common';
-import { Prisma, User } from '@prisma/client';
+import { Prisma, Roles, User } from '@prisma/client';
 import { AuthService } from '../auth/auth.service';
 import { UsersRepository } from './users.repository';
 
@@ -29,6 +29,21 @@ export class UsersService {
     userWhereUniqueInput: Prisma.UserWhereUniqueInput,
   ): Promise<User | null> {
     return this.usersRepository.getUser({
+      params: {
+        where: userWhereUniqueInput,
+      },
+    });
+  }
+
+  async userWithRoles(
+    userWhereUniqueInput: Prisma.UserWhereUniqueInput,
+  ): Promise<
+    | (User & {
+        roles: Roles[];
+      })
+    | null
+  > {
+    return this.usersRepository.getUserWithRoles({
       params: {
         where: userWhereUniqueInput,
       },

@@ -1,5 +1,6 @@
 import { Injectable } from '@nestjs/common';
-import { Prisma, User } from '@prisma/client';
+import { Prisma, Roles, User } from '@prisma/client';
+import { UserInfo } from 'os';
 import { PrismaService } from '../../database/prisma.service';
 
 @Injectable()
@@ -17,9 +18,38 @@ export class UsersRepository {
     params: {
       where: Prisma.UserWhereUniqueInput;
     };
-  }): Promise<User | null> {
+  }): Promise<any> {
     const { where } = params;
-    return this.prisma.user.findUnique({ where });
+    return this.prisma.user.findUnique({
+      where,
+      select: {
+        id: true,
+        email: true,
+        firstName: true,
+        lastName: true,
+        techSkills: true,
+        resumeLink: true,
+        englishLevel: true,
+        enabled: true,
+        password: false,
+      },
+    });
+  }
+
+  async getUserWithRoles({
+    params,
+  }: {
+    params: {
+      where: Prisma.UserWhereUniqueInput;
+    };
+  }): Promise<
+    | (User & {
+        roles: Roles[];
+      })
+    | null
+  > {
+    const { where } = params;
+    return this.prisma.user.findUnique({ where, include: { roles: true } });
   }
 
   async getUsers(params: {
@@ -28,9 +58,26 @@ export class UsersRepository {
     cursor?: Prisma.UserWhereUniqueInput;
     where?: Prisma.UserWhereInput;
     orderBy?: Prisma.UserOrderByWithRelationInput;
-  }): Promise<User[]> {
+  }): Promise<any[]> {
     const { skip, take, cursor, where, orderBy } = params;
-    return this.prisma.user.findMany({ skip, take, cursor, where, orderBy });
+    return this.prisma.user.findMany({
+      skip,
+      take,
+      cursor,
+      where,
+      orderBy,
+      select: {
+        id: true,
+        email: true,
+        firstName: true,
+        lastName: true,
+        techSkills: true,
+        resumeLink: true,
+        englishLevel: true,
+        enabled: true,
+        password: false,
+      },
+    });
   }
 
   async updateUser(params: {

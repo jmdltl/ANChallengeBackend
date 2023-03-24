@@ -11,6 +11,7 @@ import { ApiModule } from './api/api.module';
 import { ClientsModule } from './modules/clients/clients.module';
 import { AccountsModule } from './modules/accounts/accounts.module';
 import { AuthModule } from './modules/auth/auth.module';
+import { AssignationsModule } from './modules/assignations/assignations.module';
 
 @Module({
   imports: [
@@ -30,6 +31,7 @@ import { AuthModule } from './modules/auth/auth.module';
     ClientsModule,
     AccountsModule,
     AuthModule,
+    AssignationsModule,
   ],
   controllers: [],
   providers: [],
